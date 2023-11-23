@@ -4,8 +4,6 @@ from users_database import users
 database = {}
 query = input("Q: ")
 
-# Objetivo 1:
-# SELECT name, age FROM users;
 USERS = users()
 HEROES = heroes()
 
@@ -14,14 +12,7 @@ TABLE_MAPPING = {
     "HEROES": HEROES
 }
 
-"""
-TO DOs
-1. Verificar e corrigir por erros de syntax no código `SELECT name,age FROM users;`
-2. Permitir a separação de listagem de colunas printadas `SELECT name, age FROM users;`
-3. Iniciar a cláusula WHERE
-"""
-
-def query_clean(query=query):
+def Main(query=query):
     query = query.strip().upper()
     split_query = query.split() + [";"] if not query.endswith(";") else query.split()
 
@@ -33,31 +24,34 @@ def query_clean(query=query):
         raise ValueError("Missing a semicolon")
     print("Deu certo.")
     
-    fromfunc_return = FROM(table=split_query[3].rstrip(";"))
+    from_result = FROM(table=split_query[3].rstrip(";"))
+    select_result = SELECT(columns=split_query[1], result=from_result)
     if split_query[2] == "FROM":
-        fromfunc_return
+        from_result
     if split_query[0] == "SELECT":
-        SELECT(columns=split_query[1], result=fromfunc_return)
+        select_result
+    if "WHERE" in split_query:
+        if split_query[4] == "WHERE":
+            WHERE(
+                condition=[x.lower() for x in split_query[4:]], 
+                select_result=select_result
+            )
+    else:
+        raise ValueError("WHERE clause not found.")
 
 
 def SELECT(columns, result):
     columns = columns.strip().upper()
-    # 1. verificar se argumento select é *
-    #   a. Se sim, printar todas as tabelas do database selecionado pela função FROM. -> check
-    #   b. Se não, verificar quais colunas são o argumento.
-    # 2. verificar colunas especificadas no argumento.
-    #   a. printar de acordo com as colunas.
     if columns == "*":
-        print(result)
+        return result
     else:
         columns = columns.split(",")
-        # passar por todas as colunas e printar somente as que o nome batem com o input do usuário
         for row in result:
             cols_data = {}
             for col in row:
                 if col.upper() in columns:
                     cols_data[col] = row[col]
-            print(cols_data)
+            return cols_data
     
 
 def FROM(table):
@@ -73,7 +67,54 @@ def FROM(table):
     
     return database
 
-def WHERE(condition):
-    pass
+
+def WHERE(condition, select_result):
+    split_condition = condition
     
-query_clean()
+    filtered_result = []
+    
+    if split_condition[2] == "<":        
+        for row in select_result:
+            cell_value = row[split_condition[1]]
+            
+            if cell_value < float(split_condition[3].rstrip(";")):
+                filtered_result.append(row)
+        print(filtered_result)
+        return 
+            
+    if split_condition[2] == "=":
+        for row in select_result:
+            cell_value = row[split_condition[1]]
+            
+            if cell_value == float(split_condition[3].rstrip(";")):
+                filtered_result.append(row)
+        print(filtered_result)
+        return
+    
+    if split_condition[2] == ">":
+        for row in select_result:
+            cell_value = row[split_condition[1]]
+            
+            if cell_value > float(split_condition[3].rstrip(";")):
+                filtered_result.append(row)
+        print(filtered_result)
+        
+    if split_condition[2] == "<=" or split_condition[2] == "=<":
+        for row in select_result:
+            cell_value = row[split_condition[1]]
+            
+            if cell_value <= float(split_condition[3].rstrip(";")):
+                filtered_result.append(row)
+        print(filtered_result)
+        return
+    
+    if split_condition[2] == ">=" or split_condition[2] == "=>":
+        for row in select_result:
+            cell_value = row[split_condition[1]]
+            
+            if cell_value >= float(split_condition[3].rstrip(";")):
+                filtered_result.append(row)
+        print(filtered_result)
+        return
+    
+Main()

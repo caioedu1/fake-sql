@@ -1,0 +1,6 @@
+1. Verify for any bugs/code inconsistencies.
+2. Work in the WHERE clause
+    a. Handle specific columns (SELECT arguments) query
+        i. Check if the column specified in the WHERE statement is present in the list of columns of the SELECT statement.
+    b. Handle the 'and' & 'or' keywords in the WHERE clause
+3. Complete the README.
