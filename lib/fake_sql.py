@@ -25,34 +25,45 @@ def Main(query=query):
     print("Deu certo.")
     
     from_result = FROM(table=split_query[3].rstrip(";"))
-    select_result = SELECT(columns=split_query[1], result=from_result)
-    if split_query[2] == "FROM":
-        from_result
-    if split_query[0] == "SELECT":
-        select_result
+    select_result = SELECT(columns=split_query[1].upper(), table=from_result)
+    if not split_query[2] == "FROM":
+        raise ValueError("Syntax error.")
+    if not split_query[0] == "SELECT":
+        raise ValueError("Wrong index")
     if "WHERE" in split_query:
         if split_query[4] == "WHERE":
-            WHERE(
+            return WHERE(
                 condition=[x.lower() for x in split_query[4:]], 
                 select_result=select_result
             )
     else:
-        raise ValueError("WHERE clause not found.")
+        return select_result
 
 
-def SELECT(columns, result):
+
+def SELECT(columns, table):
     columns = columns.strip().upper()
     if columns == "*":
-        return result
+        return table
     else:
+        selected_data = []
         columns = columns.split(",")
-        for row in result:
+        
+        table_keys = [list(dct.keys()) for dct in table]
+        print(table_keys)
+        for x in columns:
+            x = x.strip().lower()
+            if not any(x in keys for keys in table_keys):
+                raise ValueError("This column does not exist.")
+        
+        for row in table:
             cols_data = {}
             for col in row:
                 if col.upper() in columns:
                     cols_data[col] = row[col]
-            return cols_data
-    
+            selected_data.append(cols_data)
+        return selected_data
+
 
 def FROM(table):
     if not table:
@@ -79,8 +90,7 @@ def WHERE(condition, select_result):
             
             if cell_value < float(split_condition[3].rstrip(";")):
                 filtered_result.append(row)
-        print(filtered_result)
-        return 
+        return filtered_result
             
     if split_condition[2] == "=":
         for row in select_result:
@@ -88,8 +98,7 @@ def WHERE(condition, select_result):
             
             if cell_value == float(split_condition[3].rstrip(";")):
                 filtered_result.append(row)
-        print(filtered_result)
-        return
+        return filtered_result
     
     if split_condition[2] == ">":
         for row in select_result:
@@ -97,7 +106,7 @@ def WHERE(condition, select_result):
             
             if cell_value > float(split_condition[3].rstrip(";")):
                 filtered_result.append(row)
-        print(filtered_result)
+        return filtered_result
         
     if split_condition[2] == "<=" or split_condition[2] == "=<":
         for row in select_result:
@@ -105,8 +114,7 @@ def WHERE(condition, select_result):
             
             if cell_value <= float(split_condition[3].rstrip(";")):
                 filtered_result.append(row)
-        print(filtered_result)
-        return
+        return filtered_result
     
     if split_condition[2] == ">=" or split_condition[2] == "=>":
         for row in select_result:
@@ -114,7 +122,6 @@ def WHERE(condition, select_result):
             
             if cell_value >= float(split_condition[3].rstrip(";")):
                 filtered_result.append(row)
-        print(filtered_result)
-        return
+        return filtered_result
     
-Main()
+# Main()
